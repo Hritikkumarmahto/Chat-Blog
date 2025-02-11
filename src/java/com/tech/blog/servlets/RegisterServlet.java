@@ -37,6 +37,11 @@ public class RegisterServlet extends HttpServlet {
             String gender = request.getParameter("gender");
             String about = request.getParameter("about");
 
+            
+            if (password == null || password.trim().isEmpty()) {
+                    out.println("Password cannot be empty");
+                    return;
+                }
             // Creating user object
             User user = new User(name, email, password, gender, about);
 
@@ -44,6 +49,7 @@ public class RegisterServlet extends HttpServlet {
             UserDao dao = new UserDao(connectionProvider.getConnection());
 
             if (dao.saveUser(user)) {
+                
                 out.println("done");
             } else {
                 out.println("Ohh ! Ohh ! You missed somthing please check again");

@@ -8,6 +8,8 @@ public class User {
     private String gender;
     private String about;
     private Timestamp dateTime;
+    private String profile;
+    
 
     
     // Constructor to initialize the timestamp
@@ -86,6 +88,14 @@ public class User {
 
     public Timestamp getDateTime() {
         return dateTime;
+    }
+
+    public String getProfile() {
+        return profile;
+    }
+
+    public void setProfile(String profile) {
+        this.profile = profile;
     }
 
     public void setDateTime(Timestamp dateTime) {

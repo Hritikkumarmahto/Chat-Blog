@@ -89,59 +89,47 @@
 
         <script>
             $(document).ready(function () {
-                console.log("loaded........")
+                console.log("loaded........");
 
                 $('#reg-form').on('submit', function (event) {
                     event.preventDefault();
-
-
 
                     let form = new FormData(this);
 
                     $("#submit_btn").hide();
                     $("#loader").show();
-                    //send register servlet:
+
+                    // Send request to RegisterServlet
                     $.ajax({
                         url: "RegisterServlet",
                         type: 'POST',
                         data: form,
+                        processData: false,
+                        contentType: false,
                         success: function (data, textStatus, jqXHR) {
-                            console.log(data)
+                            console.log(data);
 
                             $("#submit_btn").show();
                             $("#loader").hide();
 
-                            if (data.trim() === 'done')
-                            {
-
-                                swal("Sucess!", "Redirectiong to login page!")
-                                        .then((value) => {
-                                            window.location = "login_page.jsp"
+                            if (data.trim() === 'done') {
+                                swal("Success!", "Redirecting to login page!", "success")
+                                        .then(() => {
+                                            window.location = "login_page.jsp";
                                         });
-                            } else
-                            {
-
-                                swal(data);
+                            } else {
+                                swal("Error!", data, "error");
                             }
-
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
                             $("#submit_btn").show();
                             $("#loader").hide();
-                           swal("Error Occured", "Try Again", );
-
-                        },
-                        processData: false,
-                        contentType: false
-
+                            swal("Error Occurred", "Try Again", "error");
+                        }
                     });
-a
-
-
                 });
-
-
             });
+
 
         </script>
 
