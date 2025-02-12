@@ -6,8 +6,9 @@ import com.tech.blog.entities.User;
 import com.tech.blog.helper.connectionProvider;
 import com.tech.blog.helper.Helper;
 
-import java.io.*;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -23,100 +24,84 @@ public class EditServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet EditServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
 
+        try (PrintWriter out = response.getWriter()) {
+            // Fetching user details from the request
             String userEmail = request.getParameter("user-email");
             String userName = request.getParameter("user-name");
             String userPassword = request.getParameter("user-password");
             String userAbout = request.getParameter("user-about");
 
+            // Fetching the profile picture part
             Part part = request.getPart("image");
             String imageName = part.getSubmittedFileName();
 
-            HttpSession s = request.getSession();
-            User user = (User) s.getAttribute("currentUser");
+            // Retrieving the current user from the session
+            HttpSession session = request.getSession();
+            User user = (User) session.getAttribute("currentUser");
 
+            // Updating user details
             user.setEmail(userEmail);
             user.setName(userName);
             user.setPassword(userPassword);
             user.setAbout(userAbout);
-            user.setProfile(imageName);
 
+            // Handling profile picture update
+            String oldFile = user.getProfile();
+
+            if (imageName != null && !imageName.isEmpty()) {
+                user.setProfile(imageName);
+            }
+
+            // Updating user in the database
             UserDao userDao = new UserDao(connectionProvider.getConnection());
-            boolean ans = userDao.updateUser(user);
-            if (ans) {
+            boolean isUpdated = userDao.updateUser(user);
 
-                String path = request.getRealPath("/") + "pics" + File.separator + user.getProfile();
+            if (isUpdated) {
+                // Define paths for the new and old profile pictures
+                String uploadPath = getServletContext().getRealPath("/") + "pics" + File.separator;
+                String newFilePath = uploadPath + user.getProfile();
+                String oldFilePath = uploadPath + oldFile;
 
-                Helper.deleteFile(path);
-                if (Helper.saveFile(part.getInputStream(), path)) {
-                    out.println("Profile Updatd");
-                    Message msg = new Message("Updated Sucessfully!", "sucess", "alert-sucess");
-
-                    s.setAttribute("msg", msg);
-                    response.sendRedirect("profile.jsp");
-                } else {
-                    out.println("not iudated");
-                    Message msg = new Message("Something went wrong!", "error", "alert-danger");
-
-                    s.setAttribute("msg", msg);
+                // Delete the old profile picture if it's not the default
+                if (!"default.png".equals(oldFile) && (imageName != null && !imageName.isEmpty())) {
+                    Helper.deleteFile(oldFilePath);
                 }
 
-            } else {
-                out.println("not iudated");
-                Message msg = new Message("Something went wrong!", "error", "alert-danger");
+                // Save the new profile picture
+                if (imageName != null && !imageName.isEmpty()) {
+                    try (InputStream is = part.getInputStream()) {
+                        Helper.saveFile(is, newFilePath);
+                    }
+                }
 
-                s.setAttribute("msg", msg);
+                // Set success message and redirect to profile page
+                Message msg = new Message("Profile updated successfully!", "success", "alert-success");
+                session.setAttribute("msg", msg);
+                response.sendRedirect("profile.jsp");
+            } else {
+                // Set error message
+                Message msg = new Message("Something went wrong!", "error", "alert-danger");
+                session.setAttribute("msg", msg);
+                response.sendRedirect("edit_profile.jsp");
             }
-            out.println("</body>");
-            out.println("</html>");
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
+        return "EditServlet handles user profile updates.";
+    }
 }

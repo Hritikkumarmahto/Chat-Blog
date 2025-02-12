@@ -1,3 +1,7 @@
+<%@page import="java.util.ArrayList"%>
+<%@page import="com.tech.blog.entities.Category"%>
+<%@page import="com.tech.blog.helper.connectionProvider"%>
+<%@page import="com.tech.blog.dao.PostDao"%>
 <%@page import="com.tech.blog.entities.Message"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page errorPage="error_page.jsp"%>
@@ -45,10 +49,14 @@
                                 <li><a class="dropdown-item" href="#">Project's</a></li>
                             </ul>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><spam class="fa fa-address-book-o"></spam> Contact</a>
+                            <a class="nav-link" href="#"><span class="fa fa-address-book-o"></span> Contact</a>
                         </li>
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#add-post-modal">
+                            <span class="fa fa-address-book-o"></span> Share post
+                        </a>
                     </ul>
                     <ul class="navbar-nav mr-right">
+
                         <li class="nav-item">
                             <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
 
@@ -142,7 +150,7 @@
                                         <td>About: </td>
                                         <td>
                                             <textarea rows="3" class="form-control" name="user-about" ><%=user.getAbout()%>
-                                                 
+
                                             </textarea>
                                         </td>
                                     </tr>
@@ -169,6 +177,66 @@
                 </div>
             </div>
         </div>
+
+
+        <!-- end Modal -->
+
+        <!--        add post modal-->
+        <!-- Add Post Modal -->
+        <div class="modal fade" id="add-post-modal" tabindex="-1" aria-labelledby="addPostModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addPostModalLabel">Add New Post</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="add-post-form" action="AddPostServlet" method="POST" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <select class="form-control">
+                                    <option selected disable>---Select Category---</option>
+                                    <%
+                                        PostDao pstd = new PostDao(connectionProvider.getConnection());
+                                        ArrayList<Category> list = pstd.getAllCategories();
+
+                                        for (Category c : list) {
+                                    %>
+
+                                    <option value="<%=c.getCid%>"><%=c.getName()%></option>
+                                    <% 
+                                        }
+                                    %>
+
+                                </select>
+                            </div>
+                            <br>
+                            <div class="form-group">
+
+                                <input type="text" name="post-title" placeholder="Enter Post Title" class="form-control" required>
+                            </div>
+                            <br>
+                            <div class="form-group">
+                                <textarea name="post-content" style="height:200px;" placeholder="Enter your content" class="form-control" required></textarea>
+                            </div>
+                            <br>
+                            <div class="form-group">
+                                <textarea name="post-program" style="height:200px;" placeholder="Enter your program" class="form-control"></textarea>
+                            </div>
+                            <br>
+                            <div class="form-group">
+                                <label>Upload Image </label>
+                                <input type="file" name="post-image" class="form-control">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" form="add-post-form">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--        end post modal-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
         <script src="js/myjs.js" type="text/javascript"></script>
@@ -190,6 +258,9 @@
                     }
                 })
             })
+        </script>
+        <script>
+            $('#add-post-modal').modal(options)
         </script>
     </body>
 
